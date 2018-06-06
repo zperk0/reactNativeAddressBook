@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet,  TouchableHighlight, ScrollView, TextInput, AsyncStorage } from 'react-native';
+import { View, Text, StyleSheet,  TouchableHighlight, ScrollView, TextInput, AsyncStorage, BackHandler } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import Spinner from 'react-native-loading-spinner-overlay';
 import Contact from '../Contact'
@@ -20,52 +20,62 @@ export default class AddressBook extends Component {
 
   componentDidMount() {
     AsyncStorage.multiGet(['contactsArray']).then((data) => {
-      console.log(JSON.parse(data[0][1]).contacts);
-      this.setState({contactsArray: JSON.parse(data[0][1]).contacts})
+      let contactStorage = JSON.parse(data[0][1]);
+      if (!contactStorage) {
+        console.log('hasProperty')
+        contactStorage = {contacts: []};
+        AsyncStorage.multiSet([['contactsArray', JSON.stringify(contactStorage)]])
+      }
+      console.log(contactStorage.contacts);
+      this.setState({contactsArray: contactStorage.contacts})
     })
+    BackHandler.addEventListener('hardwareBackPress', () => {
+     if (this.state.showNewContact) {
+       this.setState({showNewContact: false})
+       return true;
+     }
+     return false;
+    });
   }
 
   saveNewContact() {
-    let name = this.state.newName;
-    let address = this.state.newAddress;
+    let last_name = this.state.new_last_name;
+    let first_name = this.state.new_first_name;
+    let dob = this.state.newAddress;
     let phone = this.state.newPhone;
+    let zip = this.state.newZip;
     AsyncStorage.multiGet(['contactsArray']).then((data) => {
       let json = JSON.parse(data[0][1]);
       console.log(typeof json)
       if (!typeof json === 'object') {
-        console.log('is ! obj')
         json = {}
         json.contacts = [];
       }
       if (!json.hasOwnProperty('contacts')) {
-        console.log('hasProperty')
         json.contacts = [];
       }
       json.contacts.push({
-        name: name,
-        address: address,
-        phone: phone
+        first_name: first_name,
+        last_name: last_name,
+        dob: dob,
+        phone: phone,
+        zip: zip
       })
-      this.setState({contactsArray: json.contacts, showNewContact: false})
+      this.setState({contactsArray: json.contacts, showNewContact: false, newPhone: "", newAddress: "", new_first_name: "", new_last_name: ""})
       AsyncStorage.multiSet([['contactsArray', JSON.stringify(json)]])
     })
 
   }
 
   contactCallback(i, updateObject, doDelete) {
-    console.log(i)
-    console.log(updateObject)
-    console.log(doDelete)
     AsyncStorage.multiGet(['contactsArray']).then((data) => {
       let json = JSON.parse(data[0][1]);
-      console.log(typeof json)
+      console.log(i)
       if (!typeof json === 'object') {
-        console.log('is ! obj')
         json = {}
         json.contacts = [];
       }
       if (!json.hasOwnProperty('contacts')) {
-        console.log('hasProperty')
         json.contacts = [];
       }
       if (doDelete == true) {
@@ -79,17 +89,13 @@ export default class AddressBook extends Component {
   }
 
   showAllContacts() {
-    console.log(this.state);
     if (Array.isArray(this.state.contactsArray) && this.state.showNewContact == false) {
-      console.log('no issue here')
       let stateArr = this.state.contactsArray;
       let contactsJSX = [];
 
       for (let i = 0; i < stateArr.length; i++) {
         contactsJSX.push(<Contact key={i} count={i} contactObj={stateArr[i]} callback={this.contactCallback}/>)
       }
-      console.log(stateArr.length)
-      console.log(contactsJSX.length)
       return (
         <ScrollView keyboardShouldPersistTaps="always" style={styles.scrollView}>
         {contactsJSX}
@@ -103,24 +109,37 @@ export default class AddressBook extends Component {
       return (
         <Animatable.View useNativeDriver={true} style={styles.newContactContainer} animation="bounceInUp" duration={600}>
           <View  style={styles.newContact}>
-            <Text style={styles.contactTitles}>NAME</Text>
+          <Text style={styles.contactTitles}>FIRST NAME</Text>
             <TextInput
                 style={styles.inputStyle}
                 autoCapitalize='words'
                 autoCorrect={false}
-                onChangeText={(text) => this.setState({newName: text})}
+                underlineColorAndroid='transparent'
+                onChangeText={(text) => this.setState({new_first_name: text})}
                 value={this.state.newName}
                 placeholder={"Enter Full Name"}
                 placeholderTextColor='grey'
             />
-            <Text style={styles.contactTitles}>ADDRESS</Text>
+            <Text style={styles.contactTitles}>LAST NAME</Text>
             <TextInput
                 style={styles.inputStyle}
                 autoCapitalize='words'
                 autoCorrect={false}
+                underlineColorAndroid='transparent'
+                onChangeText={(text) => this.setState({new_last_name: text})}
+                value={this.state.newName}
+                placeholder={"Enter Full Name"}
+                placeholderTextColor='grey'
+            />
+            <Text style={styles.contactTitles}>DATE OF BIRTH</Text>
+            <TextInput
+                style={styles.inputStyle}
+                autoCapitalize='words'
+                autoCorrect={false}
+                underlineColorAndroid='transparent'
                 onChangeText={(text) => this.setState({newAddress: text})}
                 value={this.state.newAddress}
-                placeholder={"Enter Address"}
+                placeholder={"Enter Date of Birth"}
                 placeholderTextColor='grey'
             />
             <Text style={styles.contactTitles}>PHONE</Text>
@@ -128,9 +147,21 @@ export default class AddressBook extends Component {
                 style={styles.inputStyle}
                 autoCapitalize='words'
                 autoCorrect={false}
+                underlineColorAndroid='transparent'
                 onChangeText={(text) => this.setState({newPhone: text})}
                 value={this.state.newPhone}
                 placeholder={"Enter Phone Number"}
+                placeholderTextColor='grey'
+            />
+            <Text style={styles.contactTitles}>ZIP CODE</Text>
+            <TextInput
+                style={styles.inputStyle}
+                autoCapitalize='words'
+                autoCorrect={false}
+                underlineColorAndroid='transparent'
+                onChangeText={(text) => this.setState({newZip: text})}
+                value={this.state.newZip}
+                placeholder={"Enter Zip Code"}
                 placeholderTextColor='grey'
             />
             <TouchableHighlight style={styles.saveContactBtn} onPress={() => {this.saveNewContact()}}>
@@ -184,10 +215,12 @@ const styles = StyleSheet.create({
   newContact: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderTopColor: 'black',
+    padding: '5%',
     borderTopWidth: 2,
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'flex-end',
+    alignSelf:'center',
     alignItems: 'center'
   },
   buttonBg:{
@@ -202,8 +235,7 @@ const styles = StyleSheet.create({
   },
   saveContactBtn: {
     backgroundColor:'rgb(0,181,80)',
-    width: "90%",
-    margin: 10,
+    width: "100%",
     marginTop: 20,
     marginBottom: 20,
     justifyContent:'center',
@@ -241,8 +273,7 @@ const styles = StyleSheet.create({
   },
   inputStyle:{
     height: 40,
-    marginLeft: '5%',
-    marginRight: '5%',
+    width: '100%',
     borderColor: 'grey',
     borderWidth: 0.5,
     backgroundColor:'#FFFFFF',

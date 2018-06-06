@@ -18,30 +18,11 @@ export default class Contact extends Component {
     this.updateValue = this.updateValue.bind(this)
   }
 
-  componentDidMount() {
-    // AsyncStorage.multiGet(['contactsArray']).then((data) => {
-    //   console.log(JSON.parse(data[0][1]).contacts);
-    //   this.setState({contactsArray: JSON.parse(data[0][1]).contacts})
-    // })
+  componentWillReceiveProps(nextProps) {
+    this.setState({contactProps: nextProps.contactObj})
   }
-
-  deleteContact() {
-    this.props.callback.bind() //contactCallback(i, updateObject, doDelete)
-  }
-
-  // <TextInput
-  //     style={styles.inputStyle}
-  //     autoCapitalize='words'
-  //     autoCorrect={false}
-  //     onChangeText={(text) => this.setState({newName: text})}
-  //     value={this.state.newName}
-  //     placeholder={"Enter Full Name"}
-  //     placeholderTextColor='grey'
-  // />
 
   updateValue(propertyName, value) {
-    console.log(value)
-    console.log(propertyName)
     let contact = this.state.contactProps;
     contact[propertyName] = value
     this.setState({contactProps: contact})
@@ -50,27 +31,40 @@ export default class Contact extends Component {
   showViewOrEdit() {
     if (this.state.isEditing) {
       return (
-        <TouchableHighlight>
+        <Animatable.View key={0} useNativeDriver={true} style={styles.contactPanel} animation="bounceInLeft" duration={600}>
           <View style={styles.contactView}>
             <View style={styles.contactPanel}>
               <View style={styles.contactSection}>
-                <Text style={styles.contactTitles}>NAME</Text>
+                <Text style={styles.contactTitles}>FIRST NAME</Text>
                 <TextInput style={styles.inputStyle}
                             autoCapitalize='words'
                             autoCorrect={false}
-                            onChangeText={this.updateValue.bind(this, 'name')}
-                            value={this.state.contactProps.name}
-                            placeholder={"Enter Full Name"}
+                            underlineColorAndroid='transparent'
+                            onChangeText={this.updateValue.bind(this, 'first_name')}
+                            value={this.state.contactProps.first_name}
+                            placeholder={"Enter First Name"}
                             placeholderTextColor='grey'/>
               </View>
               <View style={styles.contactSection}>
-                <Text style={styles.contactTitles}>ADDRESS</Text>
+                <Text style={styles.contactTitles}>LAST NAME</Text>
                 <TextInput style={styles.inputStyle}
                             autoCapitalize='words'
                             autoCorrect={false}
-                            onChangeText={this.updateValue.bind(this, 'address')}
-                            value={this.state.contactProps.address}
-                            placeholder={"Enter Full Name"}
+                            underlineColorAndroid='transparent'
+                            onChangeText={this.updateValue.bind(this, 'last_name')}
+                            value={this.state.contactProps.last_name}
+                            placeholder={"Enter Last Name"}
+                            placeholderTextColor='grey'/>
+              </View>
+              <View style={styles.contactSection}>
+                <Text style={styles.contactTitles}>DATE OF BIRTH</Text>
+                <TextInput style={styles.inputStyle}
+                            autoCapitalize='words'
+                            autoCorrect={false}
+                            underlineColorAndroid='transparent'
+                            onChangeText={this.updateValue.bind(this, 'dob')}
+                            value={this.state.contactProps.dob}
+                            placeholder={"Enter Date of Birth"}
                             placeholderTextColor='grey'/>
               </View>
               <View style={styles.contactSection}>
@@ -78,51 +72,71 @@ export default class Contact extends Component {
                 <TextInput style={styles.inputStyle}
                             autoCapitalize='words'
                             autoCorrect={false}
+                            underlineColorAndroid='transparent'
                             onChangeText={this.updateValue.bind(this, 'phone')}
                             value={this.state.contactProps.phone}
-                            placeholder={"Enter Full Name"}
+                            placeholder={"Enter Phone Number"}
+                            placeholderTextColor='grey'/>
+              </View>
+              <View style={styles.contactSection}>
+                <Text style={styles.contactTitles}>ZIP CODE</Text>
+                <TextInput style={styles.inputStyle}
+                            autoCapitalize='words'
+                            autoCorrect={false}
+                            underlineColorAndroid='transparent'
+                            onChangeText={this.updateValue.bind(this, 'zip')}
+                            value={this.state.contactProps.zip}
+                            placeholder={"Enter Zip Code"}
                             placeholderTextColor='grey'/>
               </View>
             </View>
-            <View style={styles.contactControls}>
+            <Animatable.View key={0} useNativeDriver={true} style={styles.contactControls} animation="fadeInRight" duration={600}>
               <TouchableHighlight style={styles.contactEdit} onPress={() => {this.setState({isEditing: false});this.props.callback(this.props.count, this.state.contactProps, false)}}>
                 <Text>Save</Text>
               </TouchableHighlight>
               <TouchableHighlight style={styles.contactDelete} onPress={() => this.props.callback(this.props.count, this.state.contactProps, true)}>
                 <Text>Delete</Text>
               </TouchableHighlight>
-            </View>
+            </Animatable.View>
           </View>
-        </TouchableHighlight>
+        </Animatable.View>
       )
     }
     return (
-      <TouchableHighlight onPress={() => console.log('tapped')}>
+      <Animatable.View key={0} useNativeDriver={true} style={styles.contactPanel} animation="bounceInLeft" duration={600}>
         <View style={styles.contactView}>
-          <View style={styles.contactPanel}>
+          <Animatable.View useNativeDriver={true} style={styles.contactPanel} animation="bounceInLeft" duration={600}>
             <View style={styles.contactSection}>
-              <Text style={styles.contactTitles}>NAME</Text>
-              <Text style={styles.contactValue}>{this.state.contactProps.name || ""}</Text>
+              <Text style={styles.contactTitles}>FIRST NAME</Text>
+              <Text style={styles.contactValue}>{this.state.contactProps.first_name || ""}</Text>
             </View>
             <View style={styles.contactSection}>
-              <Text style={styles.contactTitles}>ADDRESS</Text>
-              <Text style={styles.contactValue}>{this.state.contactProps.address || ""}</Text>
+              <Text style={styles.contactTitles}>LAST NAME</Text>
+              <Text style={styles.contactValue}>{this.state.contactProps.last_name || ""}</Text>
+            </View>
+            <View style={styles.contactSection}>
+              <Text style={styles.contactTitles}>DATE OF BIRTH</Text>
+              <Text style={styles.contactValue}>{this.state.contactProps.dob || ""}</Text>
             </View>
             <View style={styles.contactSection}>
               <Text style={styles.contactTitles}>PHONE</Text>
               <Text style={styles.contactValue}>{this.state.contactProps.phone || ""}</Text>
             </View>
-          </View>
-          <View style={styles.contactControls}>
+            <View style={styles.contactSection}>
+              <Text style={styles.contactTitles}>ZIP CODE</Text>
+              <Text style={styles.contactValue}>{this.state.contactProps.zip || ""}</Text>
+            </View>
+          </Animatable.View>
+          <Animatable.View key={1} useNativeDriver={true} style={styles.contactControls} animation="fadeInRight" duration={600}>
             <TouchableHighlight style={styles.contactEdit} onPress={() => this.setState({isEditing: true})}>
               <Text>Edit</Text>
             </TouchableHighlight>
             <TouchableHighlight style={styles.contactDelete} onPress={() => this.props.callback(this.props.count, this.state.contactProps, true)}>
               <Text>Delete</Text>
             </TouchableHighlight>
-          </View>
+          </Animatable.View>
         </View>
-      </TouchableHighlight>
+      </Animatable.View>
     )
   }
 
@@ -143,25 +157,30 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   contactControls: {
-    flex: .25
+    flex: .25,
+    height: '100%',
+    justifyContent: 'flex-end',
+    flexDirection: 'column',
   },
   contactEdit: {
     backgroundColor:'rgb(0,181,4)',
     borderRadius:5,
     margin: 10,
-    flex: .25,
+    height: '15%',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center'
   },
   contactValue: {
-    height: 30
+    height: 30,
+    marginTop: 5,
+    marginBottom: 5
   },
   contactDelete: {
     backgroundColor:'rgb(200,30,4)',
     borderRadius:5,
     margin: 10,
-    flex: .25,
+    height: '15%',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center'
@@ -208,7 +227,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   inputStyle:{
-    height: 30,
+    height: 40,
     marginLeft: '5%',
     marginRight: '5%',
     borderColor: 'grey',
