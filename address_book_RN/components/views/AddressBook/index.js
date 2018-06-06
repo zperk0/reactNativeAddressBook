@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { View, Text, StyleSheet,  TouchableHighlight, ScrollView, TextInput, AsyncStorage } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import Spinner from 'react-native-loading-spinner-overlay';
-
+import Contact from '../Contact'
 
 export default class AddressBook extends Component {
   constructor(props) {
@@ -15,6 +15,7 @@ export default class AddressBook extends Component {
     this.showAllContacts = this.showAllContacts.bind(this);
     this.addNewContact = this.addNewContact.bind(this);
     this.saveNewContact = this.saveNewContact.bind(this);
+    this.contactCallback = this.contactCallback.bind(this);
   }
 
   componentDidMount() {
@@ -51,35 +52,46 @@ export default class AddressBook extends Component {
 
   }
 
+  contactCallback(i, updateObject, doDelete) {
+    console.log(i)
+    console.log(updateObject)
+    console.log(doDelete)
+    AsyncStorage.multiGet(['contactsArray']).then((data) => {
+      let json = JSON.parse(data[0][1]);
+      console.log(typeof json)
+      if (!typeof json === 'object') {
+        console.log('is ! obj')
+        json = {}
+        json.contacts = [];
+      }
+      if (!json.hasOwnProperty('contacts')) {
+        console.log('hasProperty')
+        json.contacts = [];
+      }
+      if (doDelete == true) {
+        json.contacts.splice(i, 1)
+      } else {
+        json.contacts[i] = updateObject;
+      }
+      this.setState({contactsArray: json.contacts, showNewContact: false})
+      AsyncStorage.multiSet([['contactsArray', JSON.stringify(json)]])
+    })
+  }
+
   showAllContacts() {
     console.log(this.state);
     if (Array.isArray(this.state.contactsArray) && this.state.showNewContact == false) {
+      console.log('no issue here')
       let stateArr = this.state.contactsArray;
       let contactsJSX = [];
 
       for (let i = 0; i < stateArr.length; i++) {
-        contactsJSX.push(
-          <TouchableHighlight key={i} onPress={() => console.log('tapped')}>
-            <View style={styles.contactPanel}>
-              <View style={styles.contactSection}>
-                <Text style={styles.contactTitles}>NAME</Text>
-                <Text style={styles.vmName}>{stateArr[i].name}</Text>
-              </View>
-              <View style={styles.contactSection}>
-                <Text style={styles.contactTitles}>ADDRESS</Text>
-                <Text style={styles.vmName}>{stateArr[i].address}</Text>
-              </View>
-              <View style={styles.contactSection}>
-                <Text style={styles.contactTitles}>PHONE</Text>
-                <Text style={styles.vmName}>{stateArr[i].phone}</Text>
-              </View>
-            </View>
-          </TouchableHighlight>)
+        contactsJSX.push(<Contact key={i} count={i} contactObj={stateArr[i]} callback={this.contactCallback}/>)
       }
       console.log(stateArr.length)
       console.log(contactsJSX.length)
       return (
-        <ScrollView style={styles.scrollView}>
+        <ScrollView keyboardShouldPersistTaps="always" style={styles.scrollView}>
         {contactsJSX}
         </ScrollView>
       )
@@ -210,7 +222,14 @@ const styles = StyleSheet.create({
     width: "90%",
     flexDirection: 'column',
     alignSelf:'center',
-    borderRadius:5
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1
+    },
+    borderRadius:5,
+    shadowRadius: 3,
+    shadowOpacity: 1.0
   },
   contactSection: {
     width: '100%',
